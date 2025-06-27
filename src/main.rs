@@ -25,6 +25,7 @@ pub enum AppMessage {
     LikeCurrentTrack,
     SaveCurrentTrack,
     ShowCurrentTrack,
+    UpdateTrayWithTrack(String), // Track info for tray display
     Quit,
 }
 
@@ -86,6 +87,7 @@ async fn main() -> Result<()> {
     let quit_item = MenuItem::new("Quit", true, None);
     
     // Capture menu item IDs before moving into tray
+    let current_track_item_id = current_track_item.id();
     let save_item_id = save_item.id();
     let quit_item_id = quit_item.id();
     
@@ -135,6 +137,7 @@ async fn main() -> Result<()> {
     
     // Clone references for the async task
     let spotify_manager_clone = Arc::clone(&spotify_manager);
+    let spotify_tx = tx.clone();
     
     // Spawn Spotify management task
     tokio::spawn(async move {
@@ -151,8 +154,16 @@ async fn main() -> Result<()> {
                 if let Some(track_id) = &current_track.id {
                     if Some(track_id.clone()) != last_track_id {
                         last_track_id = Some(track_id.clone());
-                        info!("Now playing: {} - {}", current_track.name, current_track.artist);
+                        let track_display = format!("{} - {}", current_track.name, current_track.artist);
+                        info!("Now playing: {}", track_display);
+                        let _ = spotify_tx.send(AppMessage::UpdateTrayWithTrack(track_display));
                     }
+                }
+            } else {
+                // No track playing, reset if we had one before
+                if last_track_id.is_some() {
+                    last_track_id = None;
+                    let _ = spotify_tx.send(AppMessage::UpdateTrayWithTrack("No track playing".to_string()));
                 }
             }
         }
@@ -200,6 +211,10 @@ async fn main() -> Result<()> {
                     tokio::spawn(async move {
                         handle_show_current_track(spotify_manager).await;
                     });
+                }
+                AppMessage::UpdateTrayWithTrack(_track_info) => {
+                    // Handle tray update with track info
+                    // TODO: Update tray menu item with track info
                 }
                 AppMessage::Quit => {
                     info!("Shutting down...");
