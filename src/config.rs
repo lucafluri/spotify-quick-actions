@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
-use std::{fs, path::PathBuf};
+use std::{fs, io::{self, Write}, path::PathBuf};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppConfig {
@@ -69,19 +69,39 @@ impl AppConfig {
             
             Ok(config)
         } else {
-            let default_config = Self::default();
-            default_config.save()?;
-            
-            eprintln!("📝 Created config file at: {}", config_path.display());
-            eprintln!("   Please update your Spotify credentials and restart the application.");
+            eprintln!("📝 No config file found. Let's set up your Spotify credentials.");
             eprintln!("");
             eprintln!("   Setup instructions:");
             eprintln!("   1. Go to https://developer.spotify.com/dashboard");
             eprintln!("   2. Create a new app");
             eprintln!("   3. Set redirect URI to: https://example.com/callback");
-            eprintln!("   4. Copy Client ID and Client Secret to the config file");
+            eprintln!("   4. Copy Client ID and Client Secret below");
+            eprintln!("");
             
-            std::process::exit(1);
+            let client_id = Self::prompt_for_input("Enter your Spotify Client ID: ")?;
+            let client_secret = Self::prompt_for_input("Enter your Spotify Client Secret: ")?;
+            
+            let config = Self {
+                spotify: SpotifyConfig {
+                    client_id,
+                    client_secret,
+                    redirect_uri: "https://example.com/callback".to_string(),
+                },
+                hotkeys: HotkeyConfig {
+                    like_track: "Ctrl+Alt+L".to_string(),
+                },
+                notifications: NotificationConfig {
+                    enabled: true,
+                    timeout_ms: 3000,
+                },
+            };
+            
+            config.save()?;
+            eprintln!("✅ Config file created at: {}", config_path.display());
+            eprintln!("🚀 Starting application...");
+            eprintln!("");
+            
+            Ok(config)
         }
     }
     
@@ -107,5 +127,22 @@ impl AppConfig {
             .context("Failed to get config directory")?;
         
         Ok(config_dir.join("spotify-quick-actions").join("config.toml"))
+    }
+    
+    fn prompt_for_input(prompt: &str) -> Result<String> {
+        print!("{}", prompt);
+        io::stdout().flush().context("Failed to flush stdout")?;
+        
+        let mut input = String::new();
+        io::stdin()
+            .read_line(&mut input)
+            .context("Failed to read input")?;
+        
+        let trimmed = input.trim().to_string();
+        if trimmed.is_empty() {
+            anyhow::bail!("Input cannot be empty");
+        }
+        
+        Ok(trimmed)
     }
 }
