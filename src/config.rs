@@ -19,7 +19,6 @@ pub struct SpotifyConfig {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HotkeyConfig {
     pub like_track: String,
-    pub save_track: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -38,7 +37,6 @@ impl Default for AppConfig {
             },
             hotkeys: HotkeyConfig {
                 like_track: "Ctrl+Alt+L".to_string(),
-                save_track: "Ctrl+Alt+S".to_string(),
             },
             notifications: NotificationConfig {
                 enabled: true,

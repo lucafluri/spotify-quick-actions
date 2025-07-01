@@ -30,6 +30,7 @@ pub enum AppMessage {
     SaveCurrentTrack,
     ShowCurrentTrack,
     ToggleAutostart,
+    ShowHotkeyInfo,
     UpdateTrayWithTrack(String), // Track info for tray display
     UpdateAutostartStatus(String), // Update autostart menu item text
     UpdateTrayMenu, // Rebuild entire menu with current state
@@ -75,10 +76,7 @@ async fn main() -> Result<()> {
         Some(Modifiers::CONTROL | Modifiers::ALT),
         Code::KeyU,
     );
-    let save_hotkey = HotKey::new(
-        Some(Modifiers::CONTROL | Modifiers::ALT),
-        Code::KeyS,
-    );
+    
     
     hotkey_manager
         .register(like_hotkey)
@@ -86,11 +84,8 @@ async fn main() -> Result<()> {
     hotkey_manager
         .register(unlike_hotkey)
         .context("Failed to register unlike hotkey (Ctrl+Alt+U)")?;
-    hotkey_manager
-        .register(save_hotkey)
-        .context("Failed to register save hotkey (Ctrl+Alt+S)")?;
     
-    info!("Registered global hotkeys: Ctrl+Alt+L (like), Ctrl+Alt+U (unlike), Ctrl+Alt+S (save)");
+    info!("Registered global hotkeys: Ctrl+Alt+L (like), Ctrl+Alt+U (unlike)");
     
     // Create system tray
     let tray_menu = Menu::new();
@@ -107,6 +102,7 @@ async fn main() -> Result<()> {
     let autostart_text = "❌ Autostart: Not supported".to_string();
     let autostart_item = MenuItem::new(&autostart_text, true, None);
     
+    let info_item = MenuItem::new("ℹ️ Hotkeys & Info", true, None);
     let quit_item = MenuItem::new("Quit", true, None);
     
     // Capture menu item references for dynamic updates
@@ -116,6 +112,7 @@ async fn main() -> Result<()> {
     let save_item_id = save_item.id();
     let unlike_item_id = unlike_item.id();
     let autostart_item_id = autostart_item.id();
+    let info_item_id = info_item.id();
     let quit_item_id = quit_item.id();
     
     tray_menu.append_items(&[
@@ -125,6 +122,7 @@ async fn main() -> Result<()> {
         &unlike_item,
         &separator,
         &autostart_item,
+        &info_item,
         &separator,
         &quit_item,
     ])?;
@@ -160,11 +158,6 @@ async fn main() -> Result<()> {
                     if now.duration_since(last_unlike_time) >= debounce_duration {
                         last_unlike_time = now;
                         let _ = hotkey_tx.send(AppMessage::UnlikeCurrentTrack);
-                    }
-                } else if event.id == save_hotkey.id() {
-                    if now.duration_since(last_save_time) >= debounce_duration {
-                        last_save_time = now;
-                        let _ = hotkey_tx.send(AppMessage::SaveCurrentTrack);
                     }
                 }
             }
@@ -229,6 +222,8 @@ async fn main() -> Result<()> {
                 let _ = tray_tx.send(AppMessage::UnlikeCurrentTrack);
             } else if event.id == autostart_item_id {
                 let _ = tray_tx.send(AppMessage::ToggleAutostart);
+            } else if event.id == info_item_id {
+                let _ = tray_tx.send(AppMessage::ShowHotkeyInfo);
             } else if event.id == quit_item_id {
                 let _ = tray_tx.send(AppMessage::Quit);
             }
@@ -258,6 +253,9 @@ async fn main() -> Result<()> {
                     tokio::spawn(async move {
                         handle_show_current_track(spotify_manager).await;
                     });
+                }
+                AppMessage::ShowHotkeyInfo => {
+                    handle_show_hotkey_info();
                 }
                 AppMessage::ToggleAutostart => {
                     let tx_clone = tx.clone();
@@ -367,6 +365,16 @@ async fn handle_show_current_track(spotify_manager: Arc<Mutex<SpotifyManager>>) 
             warn!("No track currently playing: {}", e);
         }
     }
+}
+
+fn handle_show_hotkey_info() {
+    let _ = Notification::new()
+        .summary("🎹 Spotify Quick Actions - Hotkeys")
+        .body("Ctrl+Alt+L - Like current track\nCtrl+Alt+U - Unlike current track\n\nRight-click tray icon for more options!")
+        .timeout(8000)  // Show for 8 seconds
+        .show();
+    
+    info!("Displayed hotkey information to user");
 }
 
 async fn handle_toggle_autostart(tx: mpsc::UnboundedSender<AppMessage>) {

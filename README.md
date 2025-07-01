@@ -7,7 +7,6 @@ A blazingly fast Rust application that runs in the background and allows you to 
 - **Ultra-fast performance**: Sub-100ms response times
 - **Global hotkeys**: 
   - `Ctrl+Alt+L` - Like current track
-  - `Ctrl+Alt+S` - Save current track  
 - **System tray integration**: Right-click menu and notifications
 - **Background service**: Runs silently with minimal resource usage (<10MB RAM)
 - **Toast notifications**: Instant feedback when actions are performed
@@ -77,7 +76,6 @@ redirect_uri = "http://localhost:8888/callback"
 
 [hotkeys]
 like_track = "Ctrl+Alt+L"
-save_track = "Ctrl+Alt+S"
 
 [notifications]
 enabled = true
