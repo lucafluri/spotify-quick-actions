@@ -1,290 +1,232 @@
-# Spotify Quick Actions 🎵
+# 🎵 Spotify Quick Actions
 
-A blazingly fast Rust application that runs in the background and allows you to instantly like and save your current Spotify track with global hotkeys.
+A blazingly fast Rust application that runs in the background and allows you to instantly like/unlike your current Spotify track with global hotkeys and system tray integration.
 
-## Features ⚡
+## ✨ Features
 
-- **Ultra-fast performance**: Sub-100ms response times
-- **Global hotkeys**: 
+- **🚀 Ultra-fast performance**: Sub-100ms response times
+- **⌨️ Global hotkeys**: 
   - `Ctrl+Alt+L` - Like current track
-- **System tray integration**: Right-click menu and notifications
-- **Background service**: Runs silently with minimal resource usage (<10MB RAM)
-- **Toast notifications**: Instant feedback when actions are performed
-- **Secure authentication**: OAuth2 flow with token caching
+  - `Ctrl+Alt+U` - Unlike current track
+- **🖱️ System tray integration**: Right-click menu with all actions
+- **🔄 Real-time track display**: Shows currently playing song in tray menu
+- **🚀 Windows autostart**: Toggle autostart on/off from tray menu
+- **🔔 Toast notifications**: Instant feedback with verification
+- **🛡️ Secure authentication**: OAuth2 flow with persistent token caching
+- **📱 Background service**: Runs silently with minimal resource usage (<10MB RAM)
+- **✅ Operation verification**: Ensures like/unlike operations actually succeed
 
-## Quick Start 🚀
+## 🚀 Quick Start
 
 ### Prerequisites
-- Windows 10/11
-- Rust toolchain (install from [rustup.rs](https://rustup.rs/))
-- Spotify Premium account (required for API access)
 
-### Setup
+1. **Rust** (latest stable version)
+2. **Spotify Premium account** (required for Web API access)
+3. **Windows** (currently Windows-only due to system tray dependencies)
 
-1. **Clone and build:**
+### Installation
+
+1. **Clone the repository**:
    ```bash
-   git clone <your-repo>
+   git clone https://github.com/yourusername/spotify-quick-actions.git
    cd spotify-quick-actions
+   ```
+
+2. **Build the application**:
+   ```bash
    cargo build --release
    ```
 
-2. **Create Spotify App:**
-   - Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
-   - Click "Create app"
-   - Fill in:
-     - App name: "Spotify Quick Actions" 
-     - App description: "Personal hotkey tool"
-     - Redirect URI: `http://localhost:8888/callback`
-   - Save your Client ID and Client Secret
-
-3. **First run:**
-   ```bash
-   cargo run --release
+3. **The executable will be available at**:
    ```
-   - The app will create a config file and show you where it is
-   - Edit the config file with your Spotify credentials
-   - Run again to authenticate
+   target/release/spotify-quick-actions.exe
+   ```
 
-4. **Authentication:**
-   - Browser will open automatically
-   - Log in to Spotify and authorize the app
-   - Authentication token is cached for future use
+### Spotify App Setup
 
-## Usage 🎹
+Before using the application, you need to create a Spotify app:
+
+1. **Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)**
+2. **Click "Create app"**
+3. **Fill in the details**:
+   - App name: `Spotify Quick Actions` (or any name you prefer)
+   - App description: `Personal hotkey app for liking tracks`
+   - Website: `http://localhost` (can be anything)
+   - Redirect URI: `http://localhost:8888/callback`
+   - API/SDKs: Check `Web API`
+4. **Save the app**
+5. **Copy your `Client ID` and `Client Secret`**
+
+### Configuration
+
+1. **Run the application once** to generate the default config:
+   ```bash
+   ./target/release/spotify-quick-actions.exe
+   ```
+
+2. **Edit the configuration file** at:
+   ```
+   %APPDATA%\spotify-quick-actions\config.toml
+   ```
+
+3. **Update with your Spotify app credentials**:
+   ```toml
+   [spotify]
+   client_id = "your_spotify_client_id"
+   client_secret = "your_spotify_client_secret"  
+   redirect_uri = "http://localhost:8888/callback"
+
+   [hotkeys]
+   like_track = "Ctrl+Alt+L"
+
+   [notifications]
+   enabled = true
+   timeout_ms = 3000
+   ```
+
+### First Run & Authentication
+
+1. **Start the application**:
+   ```bash
+   ./target/release/spotify-quick-actions.exe
+   ```
+
+2. **Authentication flow** (first time only):
+   - Your browser will open to Spotify's login page
+   - Log in and authorize the application
+   - Copy the entire redirect URL from your browser
+   - Paste it into the terminal when prompted
+   - Authentication tokens are cached for future use
+
+3. **The app is now running** in your system tray!
+
+## 🎯 Usage
 
 ### Global Hotkeys
-- **`Ctrl+Alt+L`** - Like/heart the currently playing track
-- **`Ctrl+Alt+S`** - Save the currently playing track to your library
 
-### System Tray
-- **Click tray icon** - Show current track
-- **Right-click menu** - Access all functions manually
+- **`Ctrl+Alt+L`**: Like/save the currently playing track
+- **`Ctrl+Alt+U`**: Unlike/remove the currently playing track
+
+### System Tray Menu
+
+Right-click the tray icon to access:
+- **Current track display**: Shows what's currently playing
+- **💾 Save Current Track**: Like the current track
+- **💔 Remove Current Track**: Unlike the current track
+- **✅/⏹️ Autostart**: Toggle Windows startup behavior
+- **ℹ️ Hotkeys & Info**: Show hotkey reference
+- **Quit**: Exit the application
 
 ### Notifications
-- Get instant toast notifications when actions are performed
-- See current track info and confirmation messages
 
-## Configuration ⚙️
+When you like/unlike a track, you'll see notifications like:
+- ✅ **"❤️ Liked! ✅ Verified: Song - Artist"**
+- ✅ **"💔 Removed! ✅ Verified: Song - Artist"**
+- ❌ **Error messages** if operations fail
 
-Edit `%APPDATA%\spotify-quick-actions\config.toml`:
+## 🔧 Advanced Usage
+
+### Autostart Configuration
+
+- Click the autostart menu item to toggle Windows startup
+- When enabled, the app starts automatically with Windows
+- Status is shown in the tray menu: "✅ Autostart: Enabled"
+
+### Verification System
+
+The app uses a robust verification system:
+- **8 retry attempts** with progressive delays
+- **Automatic re-operation** if verification fails
+- **Only reports success** when actually verified
+- **Detailed logging** for troubleshooting
+
+### Token Management
+
+- Tokens are automatically cached in `%APPDATA%\spotify-quick-actions\`
+- Automatic token refresh when expired
+- No need to re-authenticate unless you revoke access
+
+## 🛠️ Building from Source
+
+### Dependencies
 
 ```toml
-[spotify]
-client_id = "your_spotify_client_id"
-client_secret = "your_spotify_client_secret"  
-redirect_uri = "http://localhost:8888/callback"
-
-[hotkeys]
-like_track = "Ctrl+Alt+L"
-
-[notifications]
-enabled = true
-timeout_ms = 3000
+[dependencies]
+tokio = { version = "1.0", features = ["full"] }
+rspotify = { version = "0.13", features = ["client-reqwest"] }
+reqwest = { version = "0.11", features = ["json"] }
+anyhow = "1.0"
+tracing = "0.1"
+notify-rust = "4.10"
+global-hotkey = "0.5"
+tray-icon = "0.14"
+winit = "0.29"
+dirs = "5.0"
+webbrowser = "0.8"
+url = "2.5"
 ```
 
-## Performance 🏆
-
-- **Startup time**: <500ms
-- **Action response**: <100ms  
-- **Memory usage**: <10MB
-- **CPU usage**: ~0% when idle
-- **Network**: Minimal API calls with smart caching
-
-## Development 🛠️
-
-### Project Structure
-```
-src/
-├── main.rs           # Application entry point and event loop
-├── config.rs         # Configuration management
-├── spotify_client.rs # Spotify API integration  
-└── system_tray.rs    # System tray functionality
-```
-
-### Key Dependencies
-- `rspotify` - Spotify Web API client
-- `global-hotkey` - System-wide keyboard shortcuts
-- `tray-icon` - System tray integration
-- `tokio` - Async runtime
-- `notify-rust` - Toast notifications
-
-### Building
+### Build Commands
 
 ```bash
 # Debug build
 cargo build
 
-# Release build (recommended)
+# Release build (optimized)
 cargo build --release
 
 # Run with logging
-RUST_LOG=info cargo run --release
+RUST_LOG=info cargo run
 
-# Create Windows executable
-cargo build --release --target x86_64-pc-windows-msvc
+# Install as system binary
+cargo install --path .
 ```
 
-### Testing
+## 📁 File Locations
+
+- **Config**: `%APPDATA%\spotify-quick-actions\config.toml`
+- **Token cache**: `%APPDATA%\spotify-quick-actions\spotify_token.json`
+- **Logs**: Console output (use `RUST_LOG=info` for detailed logs)
+
+## 🐛 Troubleshooting
+
+### Authentication Issues
+
+1. **"No cached token found"**: Normal on first run
+2. **"Token refresh failed"**: Delete token cache and re-authenticate
+3. **"Failed to parse redirect URL"**: Ensure you copy the complete URL
+
+### Hotkey Issues
+
+1. **Hotkeys not working**: Check if another app is using the same combination
+2. **Permission errors**: Run as administrator if needed
+3. **No response**: Check if Spotify is running and playing music
+
+### Spotify API Issues
+
+1. **"No track currently playing"**: Start playing music in Spotify
+2. **"Failed to add track"**: Ensure you have Spotify Premium
+3. **"Verification failed"**: Check internet connection and Spotify app status
+
+### Debug Mode
+
+Run with detailed logging:
 ```bash
-# Run tests
-cargo test
-
-# Run with specific Spotify credentials (for testing)
-SPOTIFY_CLIENT_ID=your_id SPOTIFY_CLIENT_SECRET=your_secret cargo run
+RUST_LOG=debug ./target/release/spotify-quick-actions.exe
 ```
 
-## Flow Launcher Plugin 🔌
+## 🔒 Security & Privacy
 
-To use with Flow Launcher, create a simple plugin wrapper:
+- **Local storage only**: All data stays on your machine
+- **Secure OAuth2**: Industry-standard authentication
+- **Minimal permissions**: Only accesses necessary Spotify data
+- **No telemetry**: No data is sent to third parties
+- **Open source**: Code is fully auditable
 
-### Plugin Structure
-```
-FlowLauncher/Plugins/SpotifyQuickActions/
-├── plugin.json
-├── main.py
-└── spotify-quick-actions.exe
-```
+## 📄 License
 
-### plugin.json
-```json
-{
-    "ID": "spotify-quick-actions",
-    "ActionKeyword": "spotify",
-    "Name": "Spotify Quick Actions",
-    "Description": "Control Spotify with quick actions",
-    "Author": "Your Name",
-    "Version": "1.0.0",
-    "Language": "python",
-    "Website": "https://github.com/yourusername/spotify-quick-actions",
-    "ExecuteFileName": "main.py"
-}
-```
-
-### main.py
-```python
-import subprocess
-import sys
-from flox import Flox
-
-class SpotifyQuickActions(Flox):
-    def query(self, query):
-        if not query:
-            self.add_item(
-                title="Spotify Quick Actions",
-                subtitle="Type 'like' or 'save' to control current track",
-                icon="icon.png"
-            )
-            return
-
-        if "like" in query.lower():
-            self.add_item(
-                title="❤️ Like Current Track",
-                subtitle="Add current track to your liked songs",
-                method="like_track",
-                icon="icon.png"
-            )
-        
-        if "save" in query.lower():
-            self.add_item(
-                title="💾 Save Current Track", 
-                subtitle="Save current track to your library",
-                method="save_track",
-                icon="icon.png"
-            )
-
-    def like_track(self):
-        subprocess.run(["spotify-quick-actions.exe", "--like"], shell=True)
-        
-    def save_track(self):
-        subprocess.run(["spotify-quick-actions.exe", "--save"], shell=True)
-
-if __name__ == "__main__":
-    SpotifyQuickActions()
-```
-
-## Troubleshooting 🔧
-
-### Common Issues
-
-**"Authentication failed"**
-- Ensure redirect URI exactly matches: `http://localhost:8888/callback`
-- Check that port 8888 is not blocked by firewall
-- Verify Client ID and Secret are correct
-
-**"No track currently playing"**  
-- Make sure Spotify is open and playing music
-- Check that you have Spotify Premium (required for API)
-- Verify the application has proper scopes
-
-**"Failed to register hotkey"**
-- Another application might be using the same hotkey
-- Try different key combinations in config
-- Run as administrator if needed
-
-**High CPU usage**
-- Check polling interval in code (default: 2 seconds)
-- Ensure no infinite loops in async tasks
-- Monitor with `cargo run --release` for optimized performance
-
-### Logs
-View detailed logs by setting environment variable:
-```bash
-set RUST_LOG=debug
-cargo run --release
-```
-
-## Security 🔒
-
-- OAuth2 tokens are stored securely in user cache directory
-- No passwords stored, only refresh tokens
-- Local authentication server runs only during initial setup
-- All communication with Spotify uses HTTPS
-
-## Roadmap 🗺️
-
-### Planned Features
-- [ ] Flow Launcher plugin integration
-- [ ] Customizable hotkey combinations
-- [ ] Multiple Spotify account support  
-- [ ] Playlist quick-add functionality
-- [ ] Skip/previous track controls
-- [ ] Mini player overlay
-- [ ] Integration with other music services
-- [ ] Auto-start with Windows
-- [ ] Better system tray menu with track info
-
-### Performance Improvements
-- [ ] Even faster startup (<200ms)
-- [ ] Reduced memory footprint (<5MB)
-- [ ] Predictive track caching
-- [ ] Batch API operations
-
-## Contributing 🤝
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Code Style
-- Use `cargo fmt` for formatting
-- Run `cargo clippy` for lints
-- Add tests for new functionality
-- Update documentation
-
-## License 📄
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments 🙏
-
-- [rspotify](https://github.com/ramsayleung/rspotify) - Excellent Spotify API wrapper
-- [global-hotkey](https://github.com/tauri-apps/global-hotkey) - Cross-platform hotkey support
-- Spotify Web API - Making this integration possible
+MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
 **Made with ❤️ and ⚡ Rust**
-
-*Enjoy your blazingly fast Spotify controls!* 🎵
