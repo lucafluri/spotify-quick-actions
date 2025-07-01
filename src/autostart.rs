@@ -76,7 +76,7 @@ pub fn enable_autostart() -> Result<()> {
         unsafe {
             let key_name = HSTRING::from(REGISTRY_KEY);
             let value_name = HSTRING::from(APP_NAME);
-            let value_data = HSTRING::from(exe_path_str.as_ref());
+            let value_data = HSTRING::from(format!("\"{}\"", exe_path_str).as_str());
             
             let mut hkey = HKEY::default();
             let result = RegCreateKeyExW(
